@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent Rewards — Turn your agent traces into USDC</title>
+<meta name="description" content="Auto-collect, redact, and sell your Claude Code / Codex / Grok / Hermes / Openclaw traces to researchers and model trainers for USDC/USDT." />
+<style>
+  :root{
+    --bg:#07090f; --bg2:#0b0f1a; --panel:#111726; --panel2:#0e1424;
+    --line:#1c2440; --txt:#e7ecf5; --muted:#8b95ad; --accent:#6c7bff;
+    --accent2:#38e1c0; --green:#38e1c0; --red:#ff5c7a; --gold:#f5c451;
+    --radius:14px;
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--txt);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* ===== Nav ===== */
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);background:rgba(7,9,15,.8);border-bottom:1px solid var(--line)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px}
+  .brand .dot{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:15px}
+  .nav-links{display:flex;gap:26px;font-size:14px;color:var(--muted)}
+  .nav-links a{color:var(--muted)}
+  .nav-links a:hover{color:var(--txt)}
+  .nav-cta{background:var(--accent);color:#fff!important;padding:8px 16px;border-radius:9px;font-weight:600}
+  .nav-cta:hover{text-decoration:none;filter:brightness(1.1)}
+
+  /* ===== Hero ===== */
+  header{position:relative;overflow:hidden;padding:96px 0 60px;text-align:center;
+    background:
+      radial-gradient(600px 400px at 70% -10%, rgba(108,123,255,.18), transparent 60%),
+      radial-gradient(500px 350px at 15% 10%, rgba(56,225,192,.10), transparent 60%),
+      var(--bg);}
+  .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:12.5px;padding:6px 12px;border-radius:999px;margin-bottom:22px}
+  .badge b{color:var(--accent2);font-weight:600}
+  h1{font-size:clamp(34px,6vw,60px);line-height:1.06;letter-spacing:-.02em;font-weight:800;max-width:820px;margin:0 auto 22px}
+  h1 span{background:linear-gradient(120deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:clamp(16px,2.4vw,20px);max-width:680px;margin:0 auto 34px}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:9px;padding:14px 26px;border-radius:11px;font-weight:600;font-size:15px;border:none;cursor:pointer}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{filter:brightness(1.1)}
+  .btn-ghost{background:var(--panel);color:var(--txt);border:1px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--accent)}
+  .code{font-family:var(--mono);font-size:13px}
+
+  /* terminal mock */
+  .term{max-width:760px;margin:56px auto 0;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel2);text-align:left;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+  .term-bar{display:flex;align-items:center;gap:8px;padding:13px 18px;border-bottom:1px solid var(--line)}
+  .term-bar i{width:12px;height:12px;border-radius:50%}
+  .term-bar i:nth-child(1){background:#ff5f57}.term-bar i:nth-child(2){background:#febc2e}.term-bar i:nth-child(3){background:#28c840}
+  .term-bar span{margin-left:10px;color:var(--muted);font-size:12.5px;font-family:var(--mono)}
+  .term-body{padding:20px 24px;font-family:var(--mono);font-size:13.5px;line-height:1.9;color:#c7d0e2}
+  .term-body .prompt{color:var(--accent2)}
+  .term-body .muted{color:var(--muted)}
+  .term-body .ok{color:var(--green)}
+  .term-body .warn{color:var(--gold)}
+  .term-body .hl{color:#fff;background:rgba(108,123,255,.15);padding:1px 5px;border-radius:5px}
+  .cursor{display:inline-block;width:8px;height:15px;background:var(--accent2);vertical-align:middle;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  /* ===== Sections ===== */
+  section{padding:84px 0}
+  .sec-head{text-align:center;margin-bottom:54px}
+  .sec-head h2{font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-.01em}
+  .sec-head p{color:var(--muted);max-width:600px;margin:12px auto 0}
+
+  /* features grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:var(--radius);padding:26px;transition:transform .18s,border-color .18s}
+  .card:hover{transform:translateY(-4px);border-color:var(--accent)}
+  .card .num{font-family:var(--mono);color:var(--accent2);font-size:13px;font-weight:700;letter-spacing:.05em}
+  .card h3{font-size:18px;margin:10px 0 8px;font-weight:700}
+  .card p{color:var(--muted);font-size:14px}
+  .card .ico{font-size:26px;margin-bottom:6px}
+
+  /* supported agents */
+  .agents{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+  .agentc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 16px;text-align:center}
+  .agentc .logo{font-size:30px;margin-bottom:8px}
+  .agentc .name{font-weight:600;font-size:15px}
+  .agentc .tag{color:var(--muted);font-size:12px;margin-top:3px}
+
+  /* privacy strip */
+  .privacy{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:8px}
+  .priv{border-left:2px solid var(--accent2);background:var(--panel);padding:18px 22px;border-radius:0 12px 12px 0}
+  .priv h4{font-size:15px;margin-bottom:6px}
+  .priv p{color:var(--muted);font-size:13.5px}
+
+  /* dashboard mock */
+  .dash{max-width:980px;margin:0 auto;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--panel2);text-align:left;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+  .dash-top{display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-bottom:1px solid var(--line)}
+  .dash-top h3{font-size:16px}
+  .wallet{font-family:var(--mono);font-size:13px;color:var(--accent2);background:rgba(56,225,192,.08);padding:7px 12px;border-radius:9px;border:1px solid rgba(56,225,192,.25)}
+  .dash-cols{display:grid;grid-template-columns:1fr;padding:0}
+  .dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:20px 22px;border-bottom:1px solid var(--line)}
+  .stat .lab{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+  .stat .val{font-size:24px;font-weight:800;margin-top:4px}
+  .stat .val.green{color:var(--green)} .stat .val.gold{color:var(--gold)} .stat .val.accent{color:var(--accent)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{padding:13px 22px;text-align:left;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  td .hash{font-family:var(--mono);color:var(--accent)}
+  .tag{display:inline-block;font-size:11px;padding:3px 9px;border-radius:999px;font-weight:600}
+  .tag.research{background:rgba(108,123,255,.14);color:var(--accent)}
+  .tag.commercial{background:rgba(56,225,192,.12);color:var(--green)}
+  .tag.exclusive{background:rgba(245,196,81,.12);color:var(--gold)}
+  .pct{font-family:var(--mono);color:var(--muted)}
+
+  /* exchange / cta */
+  .ex{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+  .ex .card{text-align:center}
+  .ex .val{font-family:var(--mono);font-size:34px;font-weight:800;color:var(--accent2)}
+
+  footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-size:13.5px}
+  .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;align-items:center}
+
+  @media(max-width:680px){.nav-links{display:none}.dash-stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <div class="brand"><span class="dot">⚡</span> Agent Rewards</div>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#agents">Agents</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#market">Marketplace</a>
+      <a href="https://github.com/josecookai/agent-rewards" target="_blank">GitHub</a>
+    </div>
+    <a class="nav-cta" href="#install">Install</a>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap">
+    <div class="badge">🚀 YC-adjacent &nbsp;·&nbsp; <b>live on Base L2</b> &nbsp;·&nbsp; v0.1 demo</div>
+    <h1>Your agent traces are data.<br><span>Make them pay.</span></h1>
+    <p class="sub">Agent Rewards automatically collects, redacts, and uploads your
+      <b>Claude Code · Codex · Grok · Hermes · Openclaw</b> sessions — then lets you sell access to
+      researchers and model trainers for <b>USDC / USDT</b>.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#install">⚡ Install in one command</a>
+      <a class="btn btn-ghost" href="#market">View marketplace</a>
+    </div>
+
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>agent-rewards — install</span></div>
+      <div class="term-body">
+        <div><span class="prompt">$</span> npx agent-rewards install</div>
+        <div class="muted">✓ detected Claude Code, Codex, Hermes Agent</div>
+        <div class="muted">✓ found <span class="hl">312 traces</span> (284 from open-source repos)</div>
+        <div class="muted">✓ redacted secrets &amp; PII · git-aware scope</div>
+        <div class="ok">+ uploaded 9 new traces → hash registry</div>
+        <div class="ok">+ credits: <b>54.20 USDC</b> earned yesterday</div>
+        <div>⏰ scheduled auto-upload: <span class="warn">daily 02:00 UTC</span><span class="cursor">&nbsp;</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== How it works ===== -->
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>How it works</h2>
+      <p>Install → we do the boring, private, repetitive work. You keep the credits.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="num">01</div><div class="ico">🔍</div>
+        <h3>Find your traces</h3>
+        <p>Scans every supported agent's local session directory and indexes the JSONL — no setup, no
+        moving files.</p>
+      </div>
+      <div class="card">
+        <div class="num">02</div><div class="ico">⬆️</div>
+        <h3>Upload — or auto-upload daily</h3>
+        <p>Incremental sync daemon with sha256 dedup and an offline queue. Set it once, earn daily.</p>
+      </div>
+      <div class="card">
+        <div class="num">03</div><div class="ico">🖥️</div>
+        <h3>View your trace</h3>
+        <p>HF-style timeline viewer: prompts, tool calls, outputs, reasoning — fully searchable.</p>
+      </div>
+      <div class="card">
+        <div class="num">04</div><div class="ico">🪙</div>
+        <h3>View your credits</h3>
+        <p>A live ledger tracks every upload, view, and sale. Transparent, token-gated.</p>
+      </div>
+      <div class="card">
+        <div class="num">05</div><div class="ico">🔁</div>
+        <h3>Exchange for USDC/USDT</h3>
+        <p>Sell researcher/ commercial access on-chain. You set license and price per trace.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Supported agents ===== -->
+<section id="agents" style="background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>One installer, all your agents</h2>
+      <p>Thin per-agent skills + a shared MCP server mount natively into each runtime.</p>
+    </div>
+    <div class="agents">
+      <div class="agentc"><div class="logo">🔷</div><div class="name">Claude Code</div><div class="tag">~/.claude/projects</div></div>
+      <div class="agentc"><div class="logo">⬛</div><div class="name">Codex</div><div class="tag">~/.codex/sessions</div></div>
+      <div class="agentc"><div class="logo">🐦</div><div class="name">Grok Bot</div><div class="tag">~/.grok</div></div>
+      <div class="agentc"><div class="logo">🧠</div><div class="name">Hermes Agent</div><div class="tag">~/.hermes/sessions</div></div>
+      <div class="agentc"><div class="logo">🛠️</div><div class="name">Openclaw</div><div class="tag">~/.openclaw</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Privacy ===== -->
+<section id="privacy">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Privacy by default. It's the moat.</h2>
+      <p>Nothing private leaves your machine unless you say so. This is non-negotiable.</p>
+    </div>
+    <div class="privacy">
+      <div class="priv"><h4>🔒 Git-aware scoping</h4><p>Defaults to open-source repos only. Private code is explicit opt-in.</p></div>
+      <div class="priv"><h4>🗜️ Local redaction</h4><p>Secret / PII / token scrub + an LLM review gate run locally before upload.</p></div>
+      <div class="priv"><h4>🧾 Provenance</h4><p>Content-addressed sha256/IPFS, immutable hash registry, decontaminated.</p></div>
+      <div class="priv"><h4>📜 You license it</h4><p>Tag each trace research / commercial / exclusive. You set the price.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Marketplace mock ===== -->
+<section id="market" style="background:var(--bg2);border-top:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Your reward dashboard</h2>
+      <p>Demo preview — every trace you own, its license, and what it's earning.</p>
+    </div>
+    <div class="dash">
+      <div class="dash-top">
+        <h3>⚡ Agent Rewards · Dashboard</h3>
+        <span class="wallet">0x8f3…41a9 · <b>1,024.80 USDC</b></span>
+      </div>
+      <div class="dash-stats">
+        <div class="stat"><div class="lab">Traces listed</div><div class="val">312</div></div>
+        <div class="stat"><div class="lab">Credits balance</div><div class="val gold">4,782</div></div>
+        <div class="stat"><div class="lab">Earned (30d)</div><div class="val green">+562.30 USDC</div></div>
+        <div class="stat"><div class="lab">Views this week</div><div class="val accent">1,891</div></div>
+      </div>
+      <table>
+        <thead><tr><th>Trace</th><th>Agent</th><th>License</th><th>Est. value</th><th>Price</th></tr></thead>
+        <tbody>
+          <tr><td class="hash">7f3a…c901</td><td>Claude Code</td><td><span class="tag research">research</span></td><td class="pct">93% novel</td><td class="green">$14.50</td></tr>
+          <tr><td class="hash">b2de…11f7</td><td>Codex</td><td><span class="tag commercial">commercial</span></td><td class="pct">tool-heavy</td><td class="green">$29.00</td></tr>
+          <tr><td class="hash">90ab…e002</td><td>Hermes</td><td><span class="tag exclusive">exclusive</span></td><td class="pct">multi-agent</td><td class="green">$120.00</td></tr>
+          <tr><td class="hash">c4d9…77a3</td><td>Grok</td><td><span class="tag commercial">commercial</span></td><td class="pct">high-depth</td><td class="green">$45.75</td></tr>
+          <tr><td class="hash">11e0…5bbd</td><td>Claude Code</td><td><span class="tag research">research</span></td><td class="pct">debug-heavy</td><td class="green">$9.80</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ex" style="margin-top:56px">
+      <div class="card"><div class="ico">🔁</div><h3>Liquid market</h3><p>Traces are a real commodity. Price moves with novelty, depth, and demand.</p></div>
+      <div class="card"><div class="val">$0.24</div><h3>Avg. per 1K tool-tokens</h3><p>Paid out weekly in USDC on Base L2 — near-zero fees.</p></div>
+      <div class="card"><div class="val">USDC · USDT</div><h3>Settlement</h3><p>Non-custodial until payout. You set per-trace licensing.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Install ===== -->
+<section id="install">
+  <div class="wrap" style="text-align:center">
+    <div class="sec-head"><h2>Start earning from day one</h2>
+      <p>Install is one command. It auto-detects which agents you already use.</p></div>
+    <div class="term" style="max-width:620px">
+      <div class="term-bar"><i></i><i></i><i></i><span>install</span></div>
+      <div class="term-body">
+        <div><span class="prompt">$</span> npx agent-rewards install --agents all</div>
+        <div class="ok">✓ 5 agents configured</div>
+        <div class="ok">✓ daily auto-upload enabled</div>
+        <div class="ok">✓ privacy scope = open-source only</div>
+        <div class="ok">✓ wallet linked (Base)</div>
+      </div>
+    </div>
+    <div style="margin-top:30px">
+      <a class="btn btn-primary" href="https://github.com/josecookai/agent-rewards" target="_blank">⭐ Star on GitHub</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <span>© 2026 Agent Rewards. Open source · MIT.</span>
+    <span>Demo landing page — product in active development.</span>
+  </div>
+</footer>
+
+</body>
+</html>
