@@ -53,14 +53,51 @@ natively into each runtime.
 | Hermes Agent   | `~/.hermes/skills/` + MCP server     | `~/.hermes/sessions/**`            |
 | Openclaw       | Openclaw skill                       | `~/.openclaw/**`                   |
 
+### Run the MCP server (working today)
+
 ```bash
-# one-shot installer (auto-detects agents present on the machine)
-npx agent-rewards install
-# or via MCP config
-#   mcp_servers:
-#     agent-rewards:
-#       url: "https://api.agent-rewards.ai/mcp"
+# from a clone
+cd agent-rewards
+python3 -m pip install -e .        # or: pip install -e .[dev] for tests
+python3 -m agent_rewards.server    # or use the `agent-rewards-mcp` entry point
 ```
+
+Point your MCP client at it. In **Hermes** (`~/.hermes/config.yaml`):
+
+```yaml
+mcp_servers:
+  agent_rewards:
+    command: "/usr/bin/python3"
+    args: ["-m", "agent_rewards.server"]
+    env:
+      AGENT_REWARDS_DB_DIR: "~/.agent-rewards"
+```
+
+Or via **Claude Code** (`.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "agent_rewards": {
+      "command": "/usr/bin/python3",
+      "args": ["-m", "agent_rewards.server"]
+    }
+  }
+}
+```
+
+The server exposes 5 tools:
+
+| Tool            | What it does                                                        |
+|-----------------|---------------------------------------------------------------------|
+| `find_trace`    | List the newest local agent traces (all supported agents)           |
+| `view_trace`    | Read one trace, secrets/PII scrubbed before it reaches the model    |
+| `upload_trace`  | Redact + register a trace into your credits ledger                  |
+| `get_credits`   | Show your running credits balance + recent registrations            |
+| `scope_of`      | Privacy gate: is a path in an open-source (shareable) repo?         |
+
+> **Coming soon:** one-shot `scripts/install.sh` (auto-detects agents), HTTP mode,
+> per-agent skills, daily daemon.
 
 ---
 
@@ -95,12 +132,15 @@ You stay in control of *what* leaves your machine and *who* can buy it.
 
 ## Roadmap
 
-- **M0** — repo + README + demo landing page *(this release)*
-- **M1** — HTTP MCP server: `find_trace` / `upload_trace` / `view_trace` / `get_credits`
+- **M0** — repo + README + demo landing page ✅
+- **M1** — MCP server: `find_trace` / `view_trace` / `upload_trace` / `get_credits` / `scope_of` ✅ *(working stdio server; HTTP + installer pending)*
 - **M2** — per-agent skills (Claude Code, Codex, Hermes first) + redactor + daily daemon
 - **M3** — backend + dashboard + hash registry + decontamination
 - **M4** — ledger + USDC/USDT settlement + marketplace
 - **M5** — open-sourcing contributor rewards / token incentives
+
+See **[docs/ROADMAP.md](docs/ROADMAP.md)** for milestones with acceptance criteria and
+**docs/CHECKLIST.md** for the release checklist. Full project status is tracked there.
 
 ---
 

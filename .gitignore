@@ -3,6 +3,9 @@ node_modules/
 venv/
 __pycache__/
 *.pyc
+*.egg-info/
+dist/
+build/
 .env
 .env.local
 
@@ -13,10 +16,6 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
-
-# Build output
-dist/
-build/
 
 # Landing (kept: landing/index.html is tracked; ignore other landing assets build)
 landing/*.map
