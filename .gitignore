@@ -17,5 +17,11 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Backend runtime artifacts
+*.db
+*.sqlite3
+/store/
+agent_rewards.db
+
 # Landing (kept: landing/index.html is tracked; ignore other landing assets build)
 landing/*.map

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent Rewards — Dashboard</title>
+<meta name="description" content="View your agent traces and credits — read-only dashboard for the Agent Rewards backend." />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ============ API KEY GATE ============ -->
+<div id="gate" class="gate-wrap">
+  <div class="gate">
+    <h1><span class="dot">⚡</span> Agent Rewards · Dashboard</h1>
+    <p class="sub">Enter your API key to connect. It's kept only in your browser's localStorage and sent as a
+      <code class="mono">Bearer</code> token to this daemon's <code class="mono">/v1</code> API.</p>
+
+    <label for="key-input">API key</label>
+    <input id="key-input" type="password" placeholder="ar_…" autocomplete="off" spellcheck="false" />
+    <div id="gate-err" class="err"></div>
+    <div id="gate-ok" class="okline"></div>
+
+    <button id="connect-btn" class="btn btn-primary">🔑 Connect</button>
+
+    <div class="hint">
+      Generated with the server's <code class="mono">AGENT_REWARDS_ADMIN_KEY</code> via
+      <code class="mono">POST /v1/auth/keys</code>. Each key only ever sees its own traces.
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div id="app" class="hidden">
+
+  <nav>
+    <div class="wrap nav-in">
+      <div class="brand" onclick="showList()"><span class="dot">⚡</span> Agent Rewards</div>
+      <div class="toolbar">
+        <button id="disconnect-btn" class="btn btn-ghost btn-sm">Disconnect</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- list view -->
+  <div id="view-list" class="view">
+    <div id="banner-holder"></div>
+
+    <div class="view-head">
+      <h2>Credits</h2>
+      <button id="refresh-btn" class="btn btn-ghost btn-sm">↻ Refresh</button>
+    </div>
+
+    <div class="stats" id="stats">
+      <div class="stat"><div class="lab">Balance</div><div class="val green">—</div></div>
+      <div class="stat"><div class="lab">Traces registered</div><div class="val accent">—</div></div>
+    </div>
+
+    <div class="panel-card">
+      <h3 style="display:flex;align-items:center;justify-content:space-between">
+        Recent registrations
+        <button class="btn btn-ghost btn-sm" onclick="loadCredits()">↻</button>
+      </h3>
+      <div id="recent" class="recent-list">
+        <div class="loading">Loading…</div>
+      </div>
+    </div>
+
+    <div class="view-head" style="margin-top:8px">
+      <h2>Your traces</h2>
+      <button class="btn btn-ghost btn-sm" onclick="loadTraces()">↻</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Trace</th><th>Agent</th><th>Credits</th><th>Size</th><th>Created</th></tr>
+        </thead>
+        <tbody id="traces-body">
+          <tr><td colspan="5"><div class="loading"><span class="spin"></span>Loading traces…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- viewer view -->
+  <div id="view-viewer" class="view hidden">
+    <div class="view-head">
+      <h2><span class="backlink" onclick="showList()">← Back to traces</span></h2>
+    </div>
+
+    <div class="viewer-meta" id="viewer-meta"></div>
+
+    <div class="toolbar" style="margin-bottom:18px">
+      <button id="dl-btn" class="btn btn-primary btn-sm">⬇ Download raw JSONL</button>
+      <button id="viewer-refresh" class="btn btn-ghost btn-sm">↻ Reload</button>
+      <div class="spacer"></div>
+      <button id="collapse-all" class="btn btn-ghost btn-sm">Collapse all</button>
+      <button id="expand-all" class="btn btn-ghost btn-sm">Expand all</button>
+    </div>
+
+    <div id="timeline" class="timeline">
+      <div class="loading"><span class="spin"></span>Loading trace…</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

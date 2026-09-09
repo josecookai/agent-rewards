@@ -33,34 +33,37 @@ and call every tool from a real MCP client.
 - [ ] `scripts/install.sh` auto-detects agents + writes MCP config
 - [ ] CHANGELOG entry
 
-## ⚠️ B0 — Beta / Public Preview ⬜
+## ⚠️ B0 — Beta / Public Preview 🔨 *(backend + dashboard + installer shipped)*
 **Gate:** an outsider goes from `git clone` → running MCP + hosted backend in <2 min,
 uploads a real trace end-to-end, and verifies it in a dashboard — no code changes.
 
-### 1 · One-click install 🔴
-- [ ] `scripts/install.sh` — auto-detect agents present, write MCP config, run server
+### 1 · One-click install 🟡
+- [x] `scripts/install.sh` — auto-detect agents present, write MCP config, run server
+- [x] `scripts/run.sh` / `scripts/uninstall.sh`
 - [ ] `uvx agent-rewards` / `pipx install agent-rewards` one-liner
-- [ ] Fresh-machine walkthrough (no Python venv knowledge needed)
+- [x] Fresh-machine walkthrough (venv creation + MCP handshake verified: `✅ Agent Rewards MCP ready`)
 
-### 2 · Hosted backend 🔴 (currently: local-only sqlite)
-- [ ] Postgres schema: `traces`, `agents`, `hash_registry` (sha256, immutable)
-- [ ] Object store for trace blobs (S3/GCS/R2 or local volume)
-- [ ] Upload endpoint (`POST /v1/traces`) accepting redacted JSONL
-- [ ] Hash-registry dedup: reject on duplicate content-address
+### 2 · Hosted backend 🟡 (shipped: `backend/` FastAPI)
+- [x] SQLAlchemy schema: `traces`, `agents`-ish, `hash_registry` (sha256, immutable) — Postgres-ready
+- [x] Object store for trace blobs (`AGENT_REWARDS_STORE_DIR`)
+- [x] Upload endpoint (`POST /v1/traces`) accepting JSONL + verifying sha256
+- [x] Hash-registry dedup: `409` on duplicate content-address
+- [ ] Deploy to a real host
 
-### 3 · Upload auth 🔴
-- [ ] API-key issuance + per-key rate-limit / quota
-- [ ] Lease token on upload; server validates key + content signature
-- [ ] `.env`/secret handling; keys never in the MCP tool args
+### 3 · Upload auth 🟡 (shipped)
+- [x] API-key mint via admin (`X-Admin-Key`), key stored as sha256 hash
+- [x] Per-key read/write isolation (other key → 404) — verified
+- [x] `.env`/secret handling
+- [ ] Rate-limit / lease-token hardening
 
-### 4 · Dashboard 🔴
-- [ ] Timeline viewer rendering a raw JSONL trace (HF-style)
-- [ ] Credits / ledger view wired to backend (not just local sqlite)
-- [ ] Read-only per-user scope (a user only sees their own traces)
+### 4 · Dashboard 🟡 (shipped: `dashboard/`, served at `/`)
+- [x] Timeline viewer rendering raw JSONL (User/Assistant cards) — verified in browser
+- [x] Credits / ledger view wired to backend — verified (balance + recent)
+- [x] Read-only per-user scope (own traces only)
 
 ### 5 · HTTP MCP mode 🟡
 - [ ] `streamable-http` transport with bearer auth (FastMCP host)
-- [ ] Remote upload client path (server-side collector uploads via HTTP)
+- [ ] Remote upload client path (MCP → hosted backend)
 
 ### 6 · Privacy hardening 🔴
 - [ ] Broader PII patterns (email, phone, wallet addr, IPs)
@@ -68,15 +71,15 @@ uploads a real trace end-to-end, and verifies it in a dashboard — no code chan
 - [ ] Terms-of-service / data-license policy (`research`/`commercial`/`exclusive`)
 - [ ] Rate-limit + abuse controls on upload
 
-### 7 · Deployment 🔴
+### 7 · Deployment 🔴 (works locally)
+- [x] Runs locally via `uvicorn backend.app:app` (verified on 127.0.0.1)
 - [ ] Demo instance on a domain (api.agent-rewards.ai) behind TLS
-- [ ] CI/CD: build + deploy on merge (`static.yml` extended for backend)
-- [ ] Health-check + rollback
+- [ ] CI/CD: build + deploy on merge (extend `static.yml` for backend)
 
-### 8 · E2E proof 🔴
-- [ ] One test account pushes a real Claude/Codex trace through
-      find→redact→upload→ledger→dashboard
-- [ ] `docs/BETA.md` walkthrough proven from a clean machine
+### 8 · E2E proof 🔨 (verified locally)
+- [x] `scripts/integration_smoke.py` — 12 checks pass (health, mint, upload, dedup, list, credits, fetch, isolation, download, dashboard at `/`)
+- [x] `scripts/seed_demo.py` + browser walkthrough (gate → credits → traces → timeline viewer)
+- [ ] Repeat E2E on a fresh host (live deploy)
 
 ### 9 · Per-trace visibility 🟡
 - [ ] Real public/private repo detection (not just "has an origin remote")
@@ -84,7 +87,8 @@ uploads a real trace end-to-end, and verifies it in a dashboard — no code chan
 ### 10 · Decontamination 🟢 (nice-to-have)
 - [ ] Fingerprint traces against eval sets for train/test leakage
 
-**B0 exit:** all 🔴/🟡 checked and verified by a fresh test account; `docs/BETA.md` green.
+**B0 exit:** 🔴 cleared (privacy hardening + live deploy), all verified by a fresh test
+account on a fresh host; `docs/BETA.md` green.
 
 ## M1.2 — HTTP + packaging polish ⬜
 - [ ] Ship `streamable-http` mode (`fastmcp run`/host:port + auth header)

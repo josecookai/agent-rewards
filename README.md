@@ -134,7 +134,7 @@ You stay in control of *what* leaves your machine and *who* can buy it.
 
 - **M0** — repo + README + demo landing page ✅
 - **M1** — MCP server: `find_trace` / `view_trace` / `upload_trace` / `get_credits` / `scope_of` ✅ *(working stdio server; HTTP + installer pending)*
-- **B0 (Beta)** — one-click install + hosted backend + dashboard + privacy hardening → **public preview** *(see gap table below)*
+- **B0 (Beta)** — one-click install + hosted backend + dashboard + privacy hardening → **public preview** 🔨 *(backend `backend/`, dashboard `dashboard/`, installer `scripts/install.sh` shipped — see gap table)*
 - **M2** — per-agent skills (Claude Code, Codex, Hermes first) + redactor + daily daemon
 - **M3** — backend + dashboard + hash registry + decontamination
 - **M4** — ledger + USDC/USDT settlement + marketplace

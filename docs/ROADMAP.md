@@ -29,28 +29,28 @@ Goal: the MCP **actually works** — you can install it and call it in Hermes/Cl
 - ⬜ `scripts/install.sh` — auto-detect agents, one-shot installer (from README's `npx agent-rewards install`)
 - ⬜ TLS-authd **HTTP** mode (`FastMCP` streamable-http) for remote dashboard use
 
-## ⚠️ Beta Gate (B0) — Public Preview ⬜
+## ⚠️ Beta Gate (B0) — Public Preview 🔨 *(backend + dashboard + installer shipped)*
 **Definition of beta:** an outsider can go from `git clone` to a running MCP + hosted backend
 in **under 2 minutes**, upload real traces end-to-end, and verify them in a dashboard — without
 touching code. Settlement is **explicitly NOT required** for beta (that's M4/production).
 
-Gap analysis — what stands between the current M1 and a usable beta:
+Gap analysis — current status vs. beta:
 
-| # | Area | Current state | Needed for beta | Blocking? |
-|---|------|--------------|-----------------|-----------|
-| 1 | **One-click install** | manual `pip install -e .` | `scripts/install.sh` + `uvx`/`pipx` one-liner | 🔴 |
-| 2 | **Hosted backend** | local-only sqlite ledger (`upload_trace` writes to disk) | Postgres + object store + hash registry endpoint | 🔴 |
-| 3 | **Upload auth** | none | API-key auth on upload path (rate-limit, lease) | 🔴 |
-| 4 | **Dashboard** | none | timeline viewer + credits/ledger web UI (self-serve) | 🔴 |
-| 5 | **HTTP MCP mode** | stdio only | `streamable-http` + auth, or remote upload client | 🟡 |
-| 6 | **Privacy hardening** | rule-based scrub only | LLM review gate + broader PII/wallet patterns + terms/ToS | 🔴 |
-| 7 | **Deployment** | none | demo instance on a domain (e.g. api.agent-rewards.ai) + CI/CD | 🔴 |
-| 8 | **E2E-flows demo** | unit-level tests only | a single demo user pushing a real trace through the whole pipeline | 🔴 |
-| 9 | **Per-trace visibility** | remote-presence heuristic | real public/private repo detection | 🟡 |
-| 10 | **Basic decontamination** | none | train/test leakage fingerprint | 🟢 (nice-to-have) |
+| # | Area | Status | Needed for beta | Blocking? |
+|---|------|--------|-----------------|-----------|
+| 1 | **One-click install** | ✅ `scripts/install.sh` + `run.sh`/`uninstall.sh` | `uvx`/`pipx` one-liner polish | 🟡 |
+| 2 | **Hosted backend** | ✅ `backend/` FastAPI (Postgres-ready schema, object store, hash dedup) | deploy to real host | 🟡 |
+| 3 | **Upload auth** | ✅ API-key (+hash of key stored), admin mint, per-key isolation | rate-limit/lease hardening | 🟡 |
+| 4 | **Dashboard** | ✅ `dashboard/` static (gate, credits, traces, timeline viewer) served at `/` | hosted deploy | 🟡 |
+| 5 | **HTTP MCP mode** | ⬜ stdio only | `streamable-http` + auth, or remote upload client | 🟡 |
+| 6 | **Privacy hardening** | 🔨 rule-based scrub only | LLM review gate + broader PII/wallet patterns + terms/ToS | 🔴 |
+| 7 | **Deployment** | 🔨 works locally (`uvicorn backend.app:app`) | demo domain (api.agent-rewards.ai) + CI/CD | 🔴 |
+| 8 | **E2E-flows demo** | ✅ verified locally (12 integration checks + browser) | repeat on fresh host | 🟡 |
+| 9 | **Per-trace visibility** | 🟡 remote-presence heuristic | real public/private repo detection | 🟡 |
+| 10 | **Basic decontamination** | ⬜ | train/test leakage fingerprint | 🟢 (nice-to-have) |
 
-**B0 exit criteria** → everything 🔴/🟡 above is implemented and verified by a test account, and
-`docs/BETA.md` walkthrough is proven from a clean machine.
+**B0 exit criteria** → 🔴 items cleared (privacy hardening + a live deploy proving the E2E
+from a fresh host), and `docs/BETA.md` walkthrough is proven from a clean machine.
 
 ## M2 — Per-agent skills + redactor + daily daemon
 Goal: zero-touch collection — traces get found, redacted, and banked daily.
