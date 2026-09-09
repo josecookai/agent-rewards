@@ -29,9 +29,62 @@ and call every tool from a real MCP client.
 ### Docs & install
 - [x] `docs/ROADMAP.md` written
 - [x] `docs/CHECKLIST.md` written
-- [ ] README updated with actual install + config snippet
+- [x] README updated with actual install + config snippet
 - [ ] `scripts/install.sh` auto-detects agents + writes MCP config
 - [ ] CHANGELOG entry
+
+## ⚠️ B0 — Beta / Public Preview ⬜
+**Gate:** an outsider goes from `git clone` → running MCP + hosted backend in <2 min,
+uploads a real trace end-to-end, and verifies it in a dashboard — no code changes.
+
+### 1 · One-click install 🔴
+- [ ] `scripts/install.sh` — auto-detect agents present, write MCP config, run server
+- [ ] `uvx agent-rewards` / `pipx install agent-rewards` one-liner
+- [ ] Fresh-machine walkthrough (no Python venv knowledge needed)
+
+### 2 · Hosted backend 🔴 (currently: local-only sqlite)
+- [ ] Postgres schema: `traces`, `agents`, `hash_registry` (sha256, immutable)
+- [ ] Object store for trace blobs (S3/GCS/R2 or local volume)
+- [ ] Upload endpoint (`POST /v1/traces`) accepting redacted JSONL
+- [ ] Hash-registry dedup: reject on duplicate content-address
+
+### 3 · Upload auth 🔴
+- [ ] API-key issuance + per-key rate-limit / quota
+- [ ] Lease token on upload; server validates key + content signature
+- [ ] `.env`/secret handling; keys never in the MCP tool args
+
+### 4 · Dashboard 🔴
+- [ ] Timeline viewer rendering a raw JSONL trace (HF-style)
+- [ ] Credits / ledger view wired to backend (not just local sqlite)
+- [ ] Read-only per-user scope (a user only sees their own traces)
+
+### 5 · HTTP MCP mode 🟡
+- [ ] `streamable-http` transport with bearer auth (FastMCP host)
+- [ ] Remote upload client path (server-side collector uploads via HTTP)
+
+### 6 · Privacy hardening 🔴
+- [ ] Broader PII patterns (email, phone, wallet addr, IPs)
+- [ ] Optional LLM review gate over redacted output before persist
+- [ ] Terms-of-service / data-license policy (`research`/`commercial`/`exclusive`)
+- [ ] Rate-limit + abuse controls on upload
+
+### 7 · Deployment 🔴
+- [ ] Demo instance on a domain (api.agent-rewards.ai) behind TLS
+- [ ] CI/CD: build + deploy on merge (`static.yml` extended for backend)
+- [ ] Health-check + rollback
+
+### 8 · E2E proof 🔴
+- [ ] One test account pushes a real Claude/Codex trace through
+      find→redact→upload→ledger→dashboard
+- [ ] `docs/BETA.md` walkthrough proven from a clean machine
+
+### 9 · Per-trace visibility 🟡
+- [ ] Real public/private repo detection (not just "has an origin remote")
+
+### 10 · Decontamination 🟢 (nice-to-have)
+- [ ] Fingerprint traces against eval sets for train/test leakage
+
+**B0 exit:** all 🔴/🟡 checked and verified by a fresh test account; `docs/BETA.md` green.
 
 ## M1.2 — HTTP + packaging polish ⬜
 - [ ] Ship `streamable-http` mode (`fastmcp run`/host:port + auth header)

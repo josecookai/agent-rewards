@@ -13,7 +13,7 @@ Legend: ✅ shipped · 🔨 in progress · ⬜ planned · ⛔ blocked
 - [x] README (positioning, architecture, features)
 - [x] Demo landing page (`landing/`) + GitHub Pages workflow (`.github/workflows/static.yml`)
 
-## M1 — HTTP/stdio MCP server: usable local MCP ✅ *(core shipped)*
+## M1 — MCP server: usable local MCP ✅ *(core shipped)*
 Goal: the MCP **actually works** — you can install it and call it in Hermes/Claude/Codex today.
 
 - [x] `agent_rewards` Python package (renamed from `mcp/` to avoid SDK name clash)
@@ -25,9 +25,32 @@ Goal: the MCP **actually works** — you can install it and call it in Hermes/Cl
 - [x] `pyproject.toml` — installable, `agent-rewards-mcp` entry point
 - [x] Test suite (20 tests) incl. in-process stdio `ClientSession` e2e
 - [x] Verified end-to-end over real stdio transport
-- 🔨 Install docs / MCP config snippet for Hermes + Claude (`config.yaml`)
+- 🔨 Install docs / MCP config snippet for Hermes + Claude (`config.yaml`) — README done; `mcp/` snippet in repo pending
 - ⬜ `scripts/install.sh` — auto-detect agents, one-shot installer (from README's `npx agent-rewards install`)
 - ⬜ TLS-authd **HTTP** mode (`FastMCP` streamable-http) for remote dashboard use
+
+## ⚠️ Beta Gate (B0) — Public Preview ⬜
+**Definition of beta:** an outsider can go from `git clone` to a running MCP + hosted backend
+in **under 2 minutes**, upload real traces end-to-end, and verify them in a dashboard — without
+touching code. Settlement is **explicitly NOT required** for beta (that's M4/production).
+
+Gap analysis — what stands between the current M1 and a usable beta:
+
+| # | Area | Current state | Needed for beta | Blocking? |
+|---|------|--------------|-----------------|-----------|
+| 1 | **One-click install** | manual `pip install -e .` | `scripts/install.sh` + `uvx`/`pipx` one-liner | 🔴 |
+| 2 | **Hosted backend** | local-only sqlite ledger (`upload_trace` writes to disk) | Postgres + object store + hash registry endpoint | 🔴 |
+| 3 | **Upload auth** | none | API-key auth on upload path (rate-limit, lease) | 🔴 |
+| 4 | **Dashboard** | none | timeline viewer + credits/ledger web UI (self-serve) | 🔴 |
+| 5 | **HTTP MCP mode** | stdio only | `streamable-http` + auth, or remote upload client | 🟡 |
+| 6 | **Privacy hardening** | rule-based scrub only | LLM review gate + broader PII/wallet patterns + terms/ToS | 🔴 |
+| 7 | **Deployment** | none | demo instance on a domain (e.g. api.agent-rewards.ai) + CI/CD | 🔴 |
+| 8 | **E2E-flows demo** | unit-level tests only | a single demo user pushing a real trace through the whole pipeline | 🔴 |
+| 9 | **Per-trace visibility** | remote-presence heuristic | real public/private repo detection | 🟡 |
+| 10 | **Basic decontamination** | none | train/test leakage fingerprint | 🟢 (nice-to-have) |
+
+**B0 exit criteria** → everything 🔴/🟡 above is implemented and verified by a test account, and
+`docs/BETA.md` walkthrough is proven from a clean machine.
 
 ## M2 — Per-agent skills + redactor + daily daemon
 Goal: zero-touch collection — traces get found, redacted, and banked daily.
